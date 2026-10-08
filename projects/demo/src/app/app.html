@@ -1,0 +1,42 @@
+<main dir="rtl" class="page" [class.dark]="dark()">
+  <header>
+    <h1>ngx-hebrew-datepicker</h1>
+    <p>בורר תאריך עברי ל-Angular. הערך הוא תמיד תאריך ISO (YYYY-MM-DD), כך שהוא נכנס לכל שדה תאריך קיים.</p>
+    <button type="button" class="theme" (click)="dark.set(!dark())">{{ dark() ? 'מצב בהיר' : 'מצב כהה' }}</button>
+  </header>
+
+  <section>
+    <h2>בסיסי (ngModel)</h2>
+    <hebrew-datepicker name="basic" [(ngModel)]="basic" label="בחרו תאריך עברי" />
+    <code>{{ basic || '""' }}</code>
+  </section>
+
+  <section>
+    <h2>עם תאריך לועזי ([(value)])</h2>
+    <hebrew-datepicker name="withGregorian" [(value)]="withGregorian" [showGregorian]="true" label="תאריך" />
+    <code>{{ withGregorian() || '""' }} · {{ hebrew(withGregorian()) }}</code>
+  </section>
+
+  <section>
+    <h2>תאריך לידה (טווח מוגבל)</h2>
+    <hebrew-datepicker name="birthDate" [(ngModel)]="birthDate" minDate="1940-01-01" [maxDate]="todayIso"
+                       [showGregorian]="true" label="תאריך לידה" />
+    <code>{{ birthDate || '""' }}</code>
+  </section>
+
+  <section>
+    <h2>תווית חיצונית, בלי ניקוי</h2>
+    <label for="endDate" class="external">תאריך סיום</label>
+    <hebrew-datepicker id="endDate" name="endDate" [label]="null" [allowClear]="false" [(ngModel)]="endDate" />
+    <code>{{ endDate }}</code>
+  </section>
+
+  <section>
+    <h2>טופס ריאקטיבי, חובה, בלי שבתות</h2>
+    <hebrew-datepicker name="meeting" [formControl]="meeting" [required]="true" [isDateDisabled]="noShabbat" label="מועד פגישה" />
+    <code>{{ meeting.value || '""' }} · {{ meeting.valid ? 'תקין' : 'חסר ערך' }}</code>
+    <button type="button" (click)="meeting.disabled ? meeting.enable() : meeting.disable()">
+      {{ meeting.disabled ? 'הפעלה' : 'השבתה' }}
+    </button>
+  </section>
+</main>

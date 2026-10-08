@@ -1,0 +1,20 @@
+.page {
+  --bg: #f8f8fb; --card: #fff; --text: #314b5b; --muted: #6a788c; --border: #d7dce9;
+  min-height: 100vh; box-sizing: border-box; padding: 2rem 1rem; color: var(--text); background: var(--bg);
+}
+.page.dark {
+  --bg: #172432; --card: #213243; --text: #f6f7fc; --muted: #c5cadb; --border: #4a5c75;
+  /* Theming the picker = overriding its CSS variables. */
+  --hdp-primary: #f3b32e; --hdp-on-primary: #243747; --hdp-accent: #f3b32e;
+  --hdp-surface: #213243; --hdp-surface-soft: #2a3c50; --hdp-text: #f6f7fc;
+  --hdp-muted: #c5cadb; --hdp-border: #4a5c75; --hdp-gregorian: #c5cadb;
+  --hdp-shadow: 0 14px 34px rgba(0, 0, 0, .45);
+}
+header, section { max-width: 520px; margin: 0 auto 1rem; }
+header p { color: var(--muted); }
+section { padding: 1.1rem; background: var(--card); border: 1px solid var(--border); border-radius: 14px; }
+h1 { margin: 0 0 .25rem; } h2 { margin: 0 0 .75rem; font-size: 1rem; }
+code { display: block; margin-top: .6rem; color: var(--muted); font-size: .85rem; direction: ltr; text-align: right; }
+.external { display: block; margin-bottom: .35rem; font-weight: 650; }
+button { margin-top: .6rem; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--card); font: inherit; cursor: pointer; }
+.page.dark section hebrew-datepicker { --hdp-text: #f6f7fc; }
