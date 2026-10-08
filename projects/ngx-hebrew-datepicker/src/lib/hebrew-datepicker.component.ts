@@ -32,7 +32,7 @@ const WEEKDAYS = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
 const POPUP_WIDTH = 300;
 const POPUP_GAP = 6;
 
-interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: boolean; isToday: boolean; selected: boolean; }
+interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: boolean; isToday: boolean; selected: boolean; mark: string; }
 
 /**
  * Hebrew-calendar date picker - an Angular counterpart of
@@ -47,9 +47,10 @@ interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: bo
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => HebrewDatepickerComponent), multi: true }],
   template: `
     <div class="hdp" [attr.dir]="dir()">
-      @if (label() !== null) {
+      @if (label() !== null && !inline()) {
         <label class="hdp-label" [attr.for]="fieldId()">{{ label() }}@if (required()) {<span class="hdp-required"> *</span>}</label>
       }
+      @if (!inline()) {
       <div class="hdp-field" [class.hdp-field--open]="open()" [class.hdp-field--disabled]="isDisabled()">
         <button #trigger type="button" class="hdp-trigger" [id]="fieldId()" [disabled]="isDisabled()"
                 aria-haspopup="dialog" [attr.aria-expanded]="open()" [attr.aria-label]="label() || labelsResolved().openCalendar"
@@ -66,11 +67,12 @@ interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: bo
           <button type="button" class="hdp-clear" [attr.aria-label]="labelsResolved().clear" (click)="clear()">×</button>
         }
       </div>
+      }
       <input type="hidden" [attr.name]="name()" [value]="value() || ''" />
 
-      @if (open()) {
-        <div #popup class="hdp-popup {{ popupClass() }}" role="dialog" [attr.dir]="dir()"
-             [style.top.px]="popupPos().top" [style.left.px]="popupPos().left" [style.max-height.px]="popupPos().maxHeight"
+      @if (open() || inline()) {
+        <div #popup class="hdp-popup {{ popupClass() }}" [class.hdp-popup--inline]="inline()" [attr.role]="inline() ? 'group' : 'dialog'" [attr.dir]="dir()"
+             [style.top.px]="inline() ? null : popupPos().top" [style.left.px]="inline() ? null : popupPos().left" [style.max-height.px]="inline() ? null : popupPos().maxHeight"
              (keydown)="onPopupKey($event)">
           <div class="hdp-head">
             <button type="button" class="hdp-nav" [disabled]="!canPrev()" [attr.aria-label]="labelsResolved().prevMonth" (click)="shiftMonth(-1)">‹</button>
@@ -88,10 +90,11 @@ interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: bo
             @for (b of leadingBlanks(); track $index) { <div></div> }
             @for (cell of cells(); track cell.iso) {
               <button type="button" class="hdp-day" role="gridcell" [attr.data-iso]="cell.iso"
-                      [class.hdp-day--today]="cell.isToday" [class.hdp-day--selected]="cell.selected"
+                      [class.hdp-day--today]="cell.isToday" [class.hdp-day--selected]="cell.selected" [class.hdp-day--marked]="!!cell.mark"
+                      [attr.title]="cell.mark || null"
                       [disabled]="cell.disabled" [attr.aria-selected]="cell.selected"
                       [attr.tabindex]="cell.iso === focusIso() ? 0 : -1"
-                      [attr.aria-label]="cell.hebrew + (showGregorian() ? ' · ' + cell.gregorian : '')"
+                      [attr.aria-label]="cell.hebrew + (showGregorian() ? ' · ' + cell.gregorian : '') + (cell.mark ? ' · ' + cell.mark : '')"
                       (click)="select(cell.iso)">
                 <span class="hdp-day-heb">{{ cell.hebrew }}</span>
                 @if (showGregorian()) { <span class="hdp-day-greg">{{ cell.gregorian }}</span> }
@@ -120,6 +123,7 @@ interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: bo
       --hdp-muted: #6a788c;
       --hdp-border: #d7dce9;
       --hdp-gregorian: #6a788c;
+      --hdp-mark: #ef6f45;
       --hdp-radius: 12px;
       --hdp-shadow: 0 14px 34px rgba(49, 75, 91, .18);
       --hdp-font: inherit;
@@ -188,6 +192,13 @@ interface DayCell { iso: string; hebrew: string; gregorian: number; disabled: bo
     .hdp-day--selected, .hdp-day--selected:hover:not(:disabled) { background: var(--hdp-primary); color: var(--hdp-on-primary); }
     .hdp-day--selected .hdp-day-greg { color: inherit; opacity: .8; }
     .hdp-day:disabled { opacity: .3; cursor: not-allowed; }
+    .hdp-day { position: relative; }
+    .hdp-day--marked { background: color-mix(in srgb, var(--hdp-mark) 14%, transparent); }
+    .hdp-day--marked::after {
+      content: ''; position: absolute; top: 4px; inset-inline-end: 4px; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--hdp-mark);
+    }
+    .hdp-popup--inline { position: static; width: 100%; max-width: 380px; overflow: visible; box-shadow: none; }
     .hdp-foot { display: flex; justify-content: space-between; margin-top: .55rem; padding-top: .5rem; border-top: 1px solid var(--hdp-border); }
     .hdp-link {
       padding: .3rem .6rem; border: 0; border-radius: 8px; background: none;
@@ -218,6 +229,10 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
   readonly showGregorian = input(false);
   readonly dir = input<'rtl' | 'ltr'>('rtl');
   readonly popupClass = input('');
+  /** Always-visible calendar instead of a field with a popup. */
+  readonly inline = input(false);
+  /** Days to highlight, ISO date -> tooltip text (e.g. closure reasons). */
+  readonly markedDates = input<Record<string, string>>({});
 
   /** The ISO date; '' when empty. Two-way bindable: [(value)]. */
   readonly value = model<string>('');
@@ -231,7 +246,7 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
   readonly todayIso = toIso(today());
   readonly open = signal(false);
   readonly viewStart = signal<Date>(startOfHebrewMonth(today()));
-  readonly focusIso = signal('');
+  readonly focusIso = signal(toIso(today()));
   readonly popupPos = signal({ top: 0, left: 0, maxHeight: 420 });
   private readonly formDisabled = signal(false);
   private readonly autoId = `hebrew-datepicker-${HebrewDatepickerComponent.nextId++}`;
@@ -254,6 +269,7 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
       disabled: this.isBlocked(iso),
       isToday: iso === this.todayIso,
       selected: iso === this.value(),
+      mark: this.markedDates()[iso] ?? '',
     };
   }));
   readonly viewYear = computed(() => hebrewParts(this.viewStart()).year);
@@ -320,12 +336,13 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
   select(iso: string) {
     if (this.isBlocked(iso)) return;
     this.setValue(iso);
-    this.close(true);
+    this.focusIso.set(iso);
+    if (!this.inline()) this.close(true);
   }
 
   clear() {
     this.setValue('');
-    this.close(true);
+    if (!this.inline()) this.close(true);
   }
 
   shiftMonth(step: 1 | -1) {
@@ -345,7 +362,7 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
   }
 
   onPopupKey(event: KeyboardEvent) {
-    if (event.key === 'Escape') { event.preventDefault(); this.close(true); return; }
+    if (event.key === 'Escape' && !this.inline()) { event.preventDefault(); this.close(true); return; }
     const target = event.target as HTMLElement;
     if (!target.classList.contains('hdp-day')) return;
     const rtl = this.dir() === 'rtl';
@@ -392,14 +409,18 @@ export class HebrewDatepickerComponent implements ControlValueAccessor {
 
   @HostListener('document:mousedown', ['$event'])
   onDocumentMouseDown(event: MouseEvent) {
-    if (this.open() && !this.host.nativeElement.contains(event.target as Node)) this.close();
+    if (this.open() && !this.inline() && !this.host.nativeElement.contains(event.target as Node)) this.close();
   }
 
   @HostListener('window:resize')
   @HostListener('window:scroll')
   onViewportChange() { if (this.open()) this.position(); }
 
-  writeValue(value: string | null): void { this.value.set(value ?? ''); }
+  writeValue(value: string | null): void {
+    this.value.set(value ?? '');
+    const date = fromIso(value);
+    if (this.inline() && date) { this.viewStart.set(startOfHebrewMonth(date)); this.focusIso.set(toIso(date)); }
+  }
   registerOnChange(fn: (value: string) => void): void { this.onChange = fn; }
   registerOnTouched(fn: () => void): void { this.onTouched = fn; }
   setDisabledState(isDisabled: boolean): void { this.formDisabled.set(isDisabled); }

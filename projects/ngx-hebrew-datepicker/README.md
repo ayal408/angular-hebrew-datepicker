@@ -53,6 +53,8 @@ export class MyComponent { date = ''; }
 | `showGregorian` | `boolean` | `false` | Gregorian day numbers + a Gregorian month bar |
 | `dir` | `'rtl' \| 'ltr'` | `'rtl'` | Text direction |
 | `popupClass` | `string` | `''` | Extra class on the calendar popup |
+| `inline` | `boolean` | `false` | Always-visible calendar instead of a field with a popup |
+| `markedDates` | `Record<string, string>` | `{}` | Days to highlight (ISO date → tooltip), e.g. holidays or closures |
 | `(dateChange)` | `string` | — | Fires on every user change (`''` when cleared) |
 
 Without `minDate`/`maxDate` the year list spans 30 years either side of the shown year.
@@ -68,7 +70,7 @@ Override the variables on the element or any ancestor:
   --hdp-primary: #f3b32e;   --hdp-on-primary: #243747; --hdp-accent: #f3b32e;
   --hdp-surface: #213243;   --hdp-surface-soft: #2a3c50;
   --hdp-text: #f6f7fc;      --hdp-muted: #c5cadb;      --hdp-border: #4a5c75;
-  --hdp-gregorian: #c5cadb; --hdp-radius: 12px;        --hdp-shadow: 0 14px 34px rgba(0,0,0,.45);
+  --hdp-gregorian: #c5cadb; --hdp-mark: #f58a66;    --hdp-radius: 12px;        --hdp-shadow: 0 14px 34px rgba(0,0,0,.45);
   --hdp-font: inherit;
 }
 ```
