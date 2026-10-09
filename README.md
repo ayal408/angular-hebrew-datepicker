@@ -12,6 +12,12 @@ display, and an ISO value (`YYYY-MM-DD`) so it drops into any existing date fiel
 - Keyboard: arrows move by day/week, Enter selects, Escape closes.
 - Themed entirely through CSS variables.
 
+## Install
+
+```bash
+npm install ngx-hebrew-datepicker
+```
+
 ## Usage
 
 ```ts

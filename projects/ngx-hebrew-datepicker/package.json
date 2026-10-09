@@ -1,9 +1,26 @@
 {
   "name": "ngx-hebrew-datepicker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Hebrew-calendar date picker for Angular (RTL, gematria dates, optional Gregorian display). An Angular counterpart of react-hebrew-datepicker.",
-  "keywords": ["angular", "datepicker", "hebrew", "hebrew-calendar", "jewish-calendar", "rtl", "luach"],
+  "keywords": [
+    "angular",
+    "datepicker",
+    "hebrew",
+    "hebrew-calendar",
+    "jewish-calendar",
+    "rtl",
+    "luach"
+  ],
+  "author": "Ayal",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayal408/angular-hebrew-datepicker.git"
+  },
+  "homepage": "https://github.com/ayal408/angular-hebrew-datepicker#readme",
+  "bugs": {
+    "url": "https://github.com/ayal408/angular-hebrew-datepicker/issues"
+  },
   "peerDependencies": {
     "@angular/common": "^22.0.0",
     "@angular/core": "^22.0.0",
